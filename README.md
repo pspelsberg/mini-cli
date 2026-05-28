@@ -1,4 +1,4 @@
-# 🌌 Mini-CLI Agent (v1.0)
+# 🌌 Mini-CLI Agent (v0.01)
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](#)
 [![LLM Support](https://img.shields.io/badge/LLMs-OpenAI%20%7C%20Anthropic%20%7C%20Gemini%20%7C%20Ollama%20%7C%20LMStudio-orange.svg)](#)
