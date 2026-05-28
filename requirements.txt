@@ -1,0 +1,17 @@
+typer
+pydantic
+rich
+requests
+openai
+anthropic
+google-generativeai
+lancedb
+pyarrow
+pandas
+pytest
+bandit
+ruff
+duckduckgo-search
+defusedxml
+json-repair
+mcp

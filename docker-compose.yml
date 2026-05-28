@@ -1,0 +1,16 @@
+services:
+  mini-cli:
+    build: .
+    container_name: mini_cli_agent
+    volumes:
+      - .:/app
+      # Optional: Docker Socket mounten, falls der Agent Docker-Befehle ausführen soll
+      # - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+    # Für interaktive CLI-Nutzung
+    stdin_open: true
+    tty: true
