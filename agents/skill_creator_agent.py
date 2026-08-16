@@ -2,13 +2,20 @@ import asyncio
 import os
 from pathlib import Path
 from typing import Tuple
-from rich.console import Console
-from rich.prompt import Confirm
-
+try:
+    from rich.console import Console
+    from rich.prompt import Confirm
+    console = Console()
+except ImportError:
+    class MockConsole:
+        def print(self, *args, **kwargs):
+            pass
+    class Confirm:
+        @staticmethod
+        def ask(prompt, **kwargs):
+            return True
 from core.base_agent import BaseAgent
 from providers import ProviderFactory
-
-console = Console()
 
 class SkillCreatorAgent(BaseAgent):
     """
@@ -100,9 +107,28 @@ class SkillCreatorAgent(BaseAgent):
         code = code_res.code_generated.strip()
         if code.startswith("```python"):
             code = code[9:]
+        elif code.startswith("```"):
+            code = code[3:]
         if code.endswith("```"):
             code = code[:-3]
         code = code.strip()
+
+        # AST and Security Validation
+        import ast
+        try:
+            tree = ast.parse(code)
+            # Check for forbidden dangerous imports or system manipulation
+            forbidden_modules = {"ctypes", "pty", "posix"}
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name in forbidden_modules:
+                            return False, f"Security Block: Forbidden module '{alias.name}' detected in generated skill!"
+                elif isinstance(node, ast.ImportFrom):
+                    if node.module in forbidden_modules:
+                        return False, f"Security Block: Forbidden module '{node.module}' detected in generated skill!"
+        except SyntaxError as e:
+            return False, f"Syntax Error in generated skill code: {e}"
 
         # Write file safely
         try:
@@ -111,7 +137,7 @@ class SkillCreatorAgent(BaseAgent):
                 os.makedirs(dirname, exist_ok=True)
             with open(file_name, "w", encoding="utf-8") as f:
                 f.write(code)
-            console.print(f"[bold green]✅ New skill successfully created in {file_name}![/bold green]")
+            console.print(f"[bold green]✅ New skill successfully validated and created in {file_name}![/bold green]")
             
             return True, f"Skill {file_name} created."
         except Exception as e:

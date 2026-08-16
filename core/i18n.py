@@ -17,13 +17,15 @@ def t(en_text: str, de_text: str) -> str:
         return de_text
     return en_text
 
+import logging
+
 def load_config() -> dict:
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
-            pass
+        except Exception as e:
+            logging.debug(f"Could not load config from {CONFIG_FILE}: {e}")
     return {}
 
 def save_config(language: str, mode: str, provider: str, agent_providers: dict = None):
@@ -36,6 +38,6 @@ def save_config(language: str, mode: str, provider: str, agent_providers: dict =
             config["agent_providers"] = agent_providers
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.warning(f"Could not save config to {CONFIG_FILE}: {e}")
 

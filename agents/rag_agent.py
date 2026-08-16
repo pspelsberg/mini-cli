@@ -102,8 +102,9 @@ class RAGAgent(BaseAgent):
                         memory_content += f"  File: {sm['filepath']}\n{sm['content']}\n"
                     memory_content += "\n"
                 memory_snippet = f"--- HISTORICAL MEMORY: PAST ERRORS & SOLUTIONS ---\n{memory_content}\n"
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.debug(f"Failed to fetch past memory context in RAGAgent: {e}")
 
         # Calculate budget
         max_chars = getattr(self.provider, "max_context_chars", 100000)

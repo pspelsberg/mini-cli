@@ -147,8 +147,12 @@ class MemoryManager:
                     if embedding and has_vector_col:
                         values["vector"] = embedding
 
-                    escaped_id = duplicate_id.replace("'", "''")
-                    self._table.update(where=f"id = '{escaped_id}'", values=values)
+                    # Validate ID format strictly against UUID/safe identifier regex
+                    if re.match(r"^[a-fA-F0-9\-]+$", duplicate_id):
+                        self._table.update(where=f"id = '{duplicate_id}'", values=values)
+                    else:
+                        escaped_id = duplicate_id.replace("'", "''").replace("\\", "\\\\")
+                        self._table.update(where=f"id = '{escaped_id}'", values=values)
                 else:
                     # Append new record using LanceDB native add operation
                     new_rec = {

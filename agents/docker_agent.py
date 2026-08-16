@@ -6,6 +6,9 @@ from core.base_agent import BaseAgent
 from providers import ProviderFactory
 from core.i18n import t
 
+from core.models import FileModification
+from agents.build_agent import _parse_block_format, _FILE_START, _MSG_START, _MSG_END, _FILE_END
+
 console = Console()
 
 class DockerAgent(BaseAgent):
@@ -34,25 +37,27 @@ class DockerAgent(BaseAgent):
             "für folgendes Projekt. Nutze Best Practices wie Multi-Stage Builds, Alpine/Distroless Images "
             "und non-root User für maximale Sicherheit und minimale Image-Größe.\n\n"
             f"Projekt-Info:\n{project_info}\n\n"
+            "ANTWORTE IM FOLGENDEN BLOCK-FORMAT:\n"
+            f"{_MSG_START}Container configuration generated{_MSG_END}\n"
+            f"{_FILE_START}Dockerfile{_MSG_END}\n"
+            "# Dockerfile content\n"
+            f"{_FILE_END}\n"
         )
         
         if needs_compose:
             prompt += (
-                "Erstelle zusätzlich eine 'docker-compose.yml', die alle benötigten Services "
-                "(App, Datenbank, Cache etc.) intelligent vernetzt.\n"
-                "Antworte exakt mit 'DOCKER_CONFIG_GENERATED:\n<Dockerfile und docker-compose.yml code>'."
+                f"{_FILE_START}docker-compose.yml{_MSG_END}\n"
+                "# docker-compose.yml content\n"
+                f"{_FILE_END}\n"
             )
-        else:
-            prompt += "Antworte exakt mit 'DOCKER_CONFIG_GENERATED:\n<Dockerfile code>'."
 
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(None, self.provider.generate, prompt)
         
         if response.success and response.code_generated:
             result = response.code_generated.strip()
-            if result.startswith("DOCKER_CONFIG_GENERATED"):
-                console.print(t("[dim]Docker configuration successfully generated.[/dim]",
-                                "[dim]Docker-Konfiguration erfolgreich generiert.[/dim]"))
-                return True, result
+            console.print(t("[dim]Docker configuration successfully generated.[/dim]",
+                            "[dim]Docker-Konfiguration erfolgreich generiert.[/dim]"))
+            return True, result
                 
         return False, "Fehler bei der Generierung der Docker-Konfiguration."
